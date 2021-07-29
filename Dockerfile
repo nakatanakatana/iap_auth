@@ -1,11 +1,18 @@
-FROM alpine:3.9
+FROM golang:1.16 AS builder
 
-RUN apk --update upgrade && \
-    apk add curl ca-certificates && \
-    update-ca-certificates && \
-    rm -rf /var/cache/apk/*
+WORKDIR /app/source
+COPY ./ /app/source
 
-ADD ./out/iap_auth .
+ARG CGO_ENABLED=0
+ARG GOOS=linux
+ARG GOARCH=amd64
+
+RUN go build -o ./out/iap_auth .
+
+
+FROM busybox
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /app/source/out/iap_auth .
 
 ENV PORT=8081 \
 	LOGGER_LEVEL=INFO \
