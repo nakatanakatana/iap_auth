@@ -2,8 +2,9 @@ package proxy
 
 import (
 	"net/http"
-	"net/http/httputil"
 	"net/url"
+
+	"github.com/gojekfarm/iap_auth/httputil"
 )
 
 type ProxyBackend struct {
@@ -19,9 +20,13 @@ func (this *ProxyBackend) URL() *url.URL {
 	return this.url
 }
 
-func newProxyBackend(backendURL *url.URL, transport http.RoundTripper) *ProxyBackend {
-	proxy := httputil.NewSingleHostReverseProxy(backendURL)
+func newProxyBackend(backendURL *url.URL, transport http.RoundTripper, rewrite func(*httputil.ProxyRequest)) *ProxyBackend {
+	// proxy := httputil.NewSingleHostReverseProxy(backendURL)
+	proxy := &httputil.ReverseProxy{
+		Rewrite: rewrite,
+	}
 	proxy.Transport = transport
+
 	return &ProxyBackend{
 		url:   backendURL,
 		proxy: proxy,

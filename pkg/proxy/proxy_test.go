@@ -2,6 +2,7 @@ package proxy_test
 
 import (
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
@@ -15,7 +16,8 @@ import (
 func TestShouldReverseProxyToGivenUrlWithAuthorizationHeaders(t *testing.T) {
 	logger.SetupLogger("debug")
 	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(r.Header.Get("Authorization")))
+		log.Printf("header=%+v", r.Header)
+		w.Write([]byte(r.Header.Get("Proxy-Authorization")))
 		w.WriteHeader(200)
 	}))
 	defer backend.Close()

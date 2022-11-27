@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,7 +20,10 @@ func TestShouldReverseProxyToGivenUrl(t *testing.T) {
 	defer backend.Close()
 
 	backendurl, _ := url.Parse(backend.URL)
-	frontend := httptest.NewServer(newProxyBackend(backendurl, http.DefaultTransport))
+	var atomictoken atomic.Value
+	atomictoken.Store("blahblah")
+	rewrite := CreateRewrite(backendurl, &atomictoken)
+	frontend := httptest.NewServer(newProxyBackend(backendurl, http.DefaultTransport, rewrite))
 	defer frontend.Close()
 	frontendClient := frontend.Client()
 
